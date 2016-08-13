@@ -1,10 +1,10 @@
 # ImgCrop
 
-aA image crop component with Vue.js 
+A image crop component with Vue.js 
 
 ## Live Demo
 
-[Nobuyoshi Araki's Yoko]()
+[Nobuyoshi Araki's Yoko](https://wiia.github.io/ImgCrop/dist)
 
 ## Example code
 
@@ -15,7 +15,7 @@ aA image crop component with Vue.js
                   :canvas-h="260"
                   :is-ratio="true"
                   :background-color="bgColor"></img-crop>
-	      ...
+	    ...
 	</template>
 	<script>
 		import ImgCrop from './components/ImgCrop'
@@ -71,21 +71,21 @@ Trigger crop  using event `img:out` ;
 	      type: Boolean,
 	      default: false
 	    },
-	    ratio: {
+	    cropRatio: {
 	      type: Number,
 	      default: 1.6
 	    }
-	 }
+	}
 	 
 ### canvasW & canvasH
-Size of the canvas  you need.
+Size of the canvas you need.
 ### inImgSrc
 An image for cropping from it.
 ### backgroundColor
-Background color of  canvas when image isn't cover it  totally.
+Background color of canvas when image isn't cover it totally.
 ### cropInitR
-Width of the crop area when inited.
+Ratio of crop area's width to img's when inited.
 ### cropRatio
-Ratio of the crop area when inited.
+Aspect ratio of the crop area when inited.
 ### isRatio
-Whether the ratio of crop area will be changed when it is dragged
+Whether the ratio of crop area will be changed when it is dragged.
