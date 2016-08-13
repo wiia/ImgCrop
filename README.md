@@ -4,7 +4,7 @@ A image crop component with Vue.js
 
 ## Live Demo
 
-[Nobuyoshi Araki's Yoko]()
+[Nobuyoshi Araki's Yoko](https://wiia.github.io/ImgCrop/dist)
 
 ## Example code
 
