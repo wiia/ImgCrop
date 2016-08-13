@@ -1,0 +1,277 @@
+<!DOCTyPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>post</title>
+  </head>
+  <style type="text/css">
+    @font-face {font-family: 'iconfont';
+        src: url('./font/iconfont.eot'); /* IE9*/
+        src: url('./font/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('./font/iconfont.woff') format('woff'), /* chrome、firefox */
+        url('./font/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+        url('./font/iconfont.svg#iconfont') format('svg'); /* iOS 4.1- */
+    }
+  	.poster-crop {
+  	  position: fixed;
+  	  width: 100%;
+  	  height: 100%;
+  	  background: rgba(0,0,0,.8);
+  	}
+  	.crop-panel {
+      position: relative;
+  	  width: 360px;
+  	  margin: 5% auto;
+  	  padding: 44px 0 90px;
+      border-radius: 3px;
+  	  background: #fff;
+  	}
+  	.img_crop {
+  		height: 360px;
+      background: #000;
+  	}
+    .img_crop canvas {
+      position: absolute;
+    }
+    .crop-ensure,
+    .crop-reload {
+      position: absolute;
+      bottom: 30px;     
+      border-radius: 3px;
+      font-size: 16px;
+      text-align: center;
+      text-decoration: none;
+      color: #fff;
+    }
+    .crop-ensure:hover,
+    .crop-reload:hover {
+      box-shadow: 0 0 3px #3399ff;
+    } 
+    .crop-ensure {
+      left: 60px;
+      width: 80px;
+      line-height: 36px;
+      color: #fff;
+      background: #3399ff;
+    }
+    .crop-reload {
+      right: 60px;
+      width: 78px;
+      border: 1px #3399ff solid;
+      line-height: 34px;
+      color: #3399ff;
+    }
+    .crop-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-family:"iconfont";
+      font-size:16px;
+      line-height: 16px;
+      color: #000;
+      text-decoration: none;
+      font-style:normal;
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-stroke-width: 0.2px;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .crop-close:hover {
+      text-shadow: 0 0 2px #000; 
+    }
+  </style>
+  <body>
+    <div id="app">
+        <div class="poster-crop">
+          <div class="crop-panel">
+            <div class="img_crop">
+              <canvas id="canvasIn"></canvas>
+            	<canvas id="canvasCr"></canvas>
+              <canvas id="canvasOt" style="display: none"></canvas>	
+            </div>
+            <a class="crop-ensure" href="##">确定</a>
+            <a class="crop-reload" href="##">重新上传</a>
+            <a class="crop-close" href="##">&#xe779;</a>
+          </div>
+        </div>
+      </div>
+  </body>
+  <script type="text/javascript">
+  function imgCrop(imgSrc,canvas) {
+      imgSrc = './demo.png';
+      canvas = [document.getElementById('canvasIn'),document.getElementById('canvasCr'),document.getElementById('canvasOt')];
+      //配置接口
+      var canvasW = 360,
+          canvasH = 360,
+          in_imgSrc = imgSrc,
+          ratio = 0.7;
+      //初始化
+      var canvasCr = canvas[1],
+          canvasIn = canvas[0];
+          canvasIn.height = canvasH;
+          canvasIn.width = canvasW;
+          canvasCr.height = canvasH;
+          canvasCr.width = canvasW;
+
+      var ctx = canvasCr.getContext('2d'),
+          ctxIn = canvasIn.getContext('2d'),
+          bcr = canvasCr.getBoundingClientRect(),
+          img = {
+            x : 0,
+            y : 0,
+            w : canvasW,
+            h : canvasH
+          },
+          crop = {
+            x : 100,
+            y : 150,
+            w : 10,
+            h : 70
+          },
+          isMouseDownS = false,
+          isMouseDownD = false,
+          mouseDragCurX,
+          mouseDragCurY;
+
+      var in_img = new Image();
+      in_img.src = in_imgSrc; 
+      crop.h = crop.w / ratio;
+
+      function imgJudge() {
+        var imgR = in_img.width / in_img.height,
+            canvasR = canvasW / canvasH;
+        if (imgR >= canvasR) {
+          img.h = img.w / imgR;
+          img.y = (canvasH - img.h) / 2;
+        } else {
+          img.w = img.h * imgR;
+          img.x = (canvasW - img.w) / 2;
+        }
+      }
+      function w2cX(x) {
+        return x-bcr.left;
+      }
+      function w2cY(y) {
+        return y-bcr.top;
+      }
+      function mouseDown(e){
+        e.preventDefault();
+        var isDrag = w2cX(e.clientX) <= crop.x+crop.w && w2cX(e.clientX) >= crop.x && w2cY(e.clientY) <= crop.y+crop.h && w2cY(e.clientY) >= crop.y;
+        if(isDrag){
+            isMouseDownD = true;
+            mouseDragCurX = w2cX(e.clientX);
+            mouseDragCurY = w2cX(e.clientY);
+            // console.log(mouseDragCurX);
+            // console.log(mouseDragCurY);
+        }else {
+          if(ctx.isPointInPath(w2cX(e.clientX),w2cY(e.clientY))){
+            isMouseDownS = true;
+          }
+        } 
+      }
+      function mouseMove(e){
+        e.preventDefault();
+        if(isMouseDownD) {
+          var mouseDX = w2cX(e.clientX) - mouseDragCurX,
+              mouseDY = w2cX(e.clientY) - mouseDragCurY,
+              isBeyound = (crop.x + mouseDX) < img.x || (crop.y + mouseDY) < img.y ||  (crop.x + mouseDX + crop.w) > (img.x + img.w) || (crop.y + mouseDY + crop.h) > (img.y + img.h);
+          if (!isBeyound) {
+            mouseDragCurX = w2cX(e.clientX);
+            mouseDragCurY = w2cX(e.clientY);  
+            crop.x = crop.x + mouseDX;
+            crop.y = crop.y + mouseDY;
+            initCrop();
+          }       
+        }else if(isMouseDownS){
+            var curR = (w2cX(e.clientX)-crop.x)/(w2cY(e.clientY)-crop.y),
+                isBeyound;     
+            if(curR >= ratio) {
+              isBeyound = (crop.x + (w2cY(e.clientY)-crop.y)*ratio) < crop.x || (crop.x + (w2cY(e.clientY)-crop.y)*ratio) > (img.x + img.w) ||  (crop.y + w2cY(e.clientY)-crop.y) < crop.y || (crop.y + w2cY(e.clientY)-crop.y) > (img.y + img.h);
+              if (!isBeyound) {
+                crop.h = w2cY(e.clientY)-crop.y;
+                crop.w = crop.h*ratio;
+                initCrop();
+              }            
+            } else {
+              isBeyound = crop.x + (w2cX(e.clientX)-crop.x) < crop.x || crop.x + (w2cX(e.clientX)-crop.x) > img.x + img.w ||  crop.y + (w2cX(e.clientX)-crop.x)/ratio < crop.y || crop.y + (w2cX(e.clientX)-crop.x)/ratio > img.y + img.h;
+              if (!isBeyound) {
+                crop.w = w2cX(e.clientX)-crop.x;
+                crop.h = crop.w/ratio;
+                initCrop();
+              }
+            }
+        } 
+      }
+      function mouseUp(e) {
+        e.preventDefault();
+        if(isMouseDownD) {
+          isMouseDownD = false;
+        }else if(isMouseDownS) {
+          isMouseDownS = false;
+        } 
+      }
+      function initInImage() {
+        ctxIn.drawImage(in_img,img.x,img.y,img.w,img.h);
+      }
+      function initCrop() {
+        ctx.clearRect(0,0,canvasW,canvasH)
+        
+        ctx.beginPath();
+        ctx.moveTo(img.x,img.y);
+        ctx.lineTo(img.x+img.w,img.y);
+        ctx.lineTo(img.x+img.w,img.y+img.h);
+        ctx.lineTo(img.x,img.y+img.h);
+        ctx.lineTo(img.x,img.y);
+        
+        ctx.moveTo(crop.x,crop.y);
+        ctx.lineTo(crop.x,crop.y+crop.h);
+        ctx.lineTo(crop.x+crop.w,crop.y+crop.h);
+        ctx.lineTo(crop.x+crop.w,crop.y);
+        ctx.lineTo(crop.x,crop.y);
+        ctx.closePath();
+
+        ctx.fillStyle = 'rgba(255,255,255,.6)';
+        ctx.fill();
+
+        ctx.strokeStyle = "#3399ff";
+
+        ctx.beginPath();
+        ctx.rect(crop.x, crop.y, crop.w, crop.h);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(crop.x+crop.w+3,crop.y+crop.h+3,4,0,180);
+        ctx.stroke();
+
+        canvasCr.onmousedown = function(e){
+          mouseDown(e);
+        };
+        canvasCr.onmousemove = function(e){
+          mouseMove(e);
+        };
+        document.onmouseup = function(e){
+          mouseUp(e);
+        };
+      }
+      function outImg() {
+        var canvasOt = canvas[2];
+            canvasOt.height = crop.h;
+            canvasOt.width = crop.w;
+
+        var ctxOt = canvasOt.getContext('2d');
+
+        var OtImg = ctxIn.getImageData(crop.x,crop.y,crop.w,crop.h);
+        ctxOt.putImageData(OtImg,0,0,0,0,canvasOt.width,canvasOt.height);
+        return canvasOt.toDataURL();
+      }
+      // $(".poster-crop").css("display","block");
+      in_img.onload = function() {
+        imgJudge();
+        initInImage();
+        initCrop();
+        console.log(outImg());
+        return outImg();
+      };
+  } 
+  imgCrop();
+  </script>
+</html>
